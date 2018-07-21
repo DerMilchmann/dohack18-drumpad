@@ -34,103 +34,39 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
 
         progressBar = (ProgressBar) findViewById(R.id.volumeBar);
-
-        //progressBar.setMin(30000);
-        progressBar.setMax(100);
+        progressBar.setMax(150);
 
         AsyncTask reader = new AudioStreamReader().execute();
 
         Takt takt = new Takt(4,4);
         bpmText = (TextView) findViewById(R.id.bpmText);
-        bpmText.setText(takt.getAnzahlGrundschlaege() + "/" + takt.getNotenlaenge());
+        bpmText.setText(takt.getBpm());
         taktText = (TextView) findViewById(R.id.taktText);
-        taktText.setText(takt.getBpm());
+        taktText.setText(takt.getAnzahlGrundschlaege() + "/" + takt.getNotenlaenge());
+
     }
 
-    public class AudioStreamReader extends AsyncTask<Void, short[], Void> {
+    public class AudioStreamReader extends AsyncTask<Void, Double, Void> {
         private int blockSize = 2048;// = 256;
 
         @Override
         protected Void doInBackground(Void... params) {
-
-            try {
-                AudioRecord audioRecord = findAudioRecord();
-
-                final short[] buffer = new short[blockSize];
-                if(audioRecord != null) {
-                    if(audioRecord.getState() == AudioRecord.STATE_INITIALIZED) audioRecord.startRecording();
-                    else;
-
-                    boolean test = audioRecord.getState() == AudioRecord.STATE_INITIALIZED;
-                    System.out.println(test);
-                    boolean test2 = audioRecord.getState() == AudioRecord.RECORDSTATE_RECORDING;
-                    System.out.println(test2);
-
-                    while (true) {
-                        Thread.sleep(10);
-                        final int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
-                        short[] readSize = {(short)bufferReadResult};
-                        publishProgress(buffer, readSize);
-                    }
-                    //TODO(Fabian): Maybe stop and flush the Stream??
-                    //audioRecord.stop();
-                    //audioRecord.release();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            SoundMeter soundMeter = new SoundMeter();
+            soundMeter.start();
+            while(true) {
+                publishProgress(20 * Math.log(soundMeter.getAmplitude()) / Math.log(10));
             }
-            return null;
         }
-
-
 
         @Override
-        protected void onProgressUpdate(short[]... buffers) {
-            super.onProgressUpdate(buffers);
-            progressBar.setProgress((int)calculate(buffers[0], buffers[1][0]));
+        protected void onProgressUpdate(Double... dbValues) {
+            super.onProgressUpdate(dbValues);
+            /*
+             * TODO(Fabian): Die Dezibel müssen als relativer wert angegeben werden, es muss also
+             *  vorab ein Pegel brechnet werden und dann die Abweichung davon berechnet werden
+            */
+            progressBar.setProgress(dbValues[0].intValue());
         }
-
-
-        public double calculate(short [] buffer, int readSize) {
-            double sum = 0;
-            for (int i = 0; i < readSize; i++) {
-                sum += buffer [i] * buffer [i];
-            }
-
-            if (readSize > 0) {
-                final double amplitude = (sum / readSize) / 51805.5336;
-                //TODO(Fabian): Maybe implement a less shitty equation for calculating DB
-                return (Math.abs(((20 * Math.log10(amplitude/0.00002)) - 181) * 50));
-            }
-            return 0;
-        }
-    }
-
-    public AudioRecord findAudioRecord() {
-        int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100 };
-        for (int rate : mSampleRates) {
-            for (short audioFormat : new short[] { AudioFormat.ENCODING_PCM_8BIT, AudioFormat.ENCODING_PCM_16BIT }) {
-                for (short channelConfig : new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO }) {
-                    try {
-                        System.out.println("Attempting rate " + rate + "Hz, bits: " + audioFormat + ", channel: "
-                                + channelConfig);
-                        int bufferSize = AudioRecord.getMinBufferSize(rate, channelConfig, audioFormat);
-
-                        if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
-                            // check if we can instantiate and have a success
-                            AudioRecord recorder = new AudioRecord(AudioSource.DEFAULT, rate, channelConfig, audioFormat, bufferSize);
-
-                            if (recorder.getState() == AudioRecord.STATE_INITIALIZED)
-                                return recorder;
-                        }
-                    } catch (Exception e) {
-                        System.out.println(rate + "Exception, keep trying.");
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     // Requesting permission to RECORD_AUDIO
