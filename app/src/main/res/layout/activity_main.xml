@@ -7,7 +7,7 @@
     tools:context="de.dohack.dohack18.drumpad.activities.MainActivity">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/volumeBarText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="VolumeBar:"
@@ -22,5 +22,28 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp" />
+
+    <TextView
+        android:id="@+id/taktText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="45dp"
+        android:layout_marginLeft="59dp"
+        android:layout_marginRight="59dp"
+        android:layout_marginStart="59dp"
+        app:layout_constraintBottom_toBottomOf="@id/bpmText"
+        app:layout_constraintLeft_toLeftOf="parent"/>
+
+    <TextView
+        android:id="@+id/bpmText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="45dp"
+        android:layout_marginLeft="59dp"
+        android:layout_marginRight="59dp"
+        android:layout_marginStart="59dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        />
 
 </android.support.constraint.ConstraintLayout>

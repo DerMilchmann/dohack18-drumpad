@@ -22,7 +22,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
     private ProgressBar progressBar;
-    private TextView textView;
+    private TextView volumeBarText;
+    private TextView bpmText;
+    private TextView taktText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,9 +37,15 @@ public class MainActivity extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.volumeBar);
         //progressBar.setMin(30000);
         progressBar.setMax(33000);
-        textView = (TextView) findViewById(R.id.textView);
+        volumeBarText = (TextView) findViewById(R.id.volumeBarText);
 
         AsyncTask reader = new AudioStreamReader().execute();
+
+        Takt takt = new Takt(4,4);
+        bpmText = (TextView) findViewById(R.id.bpmText);
+        bpmText.setText(takt.getAnzahlGrundschlaege() + "/" + takt.getNotenlaenge());
+        taktText = (TextView) findViewById(R.id.taktText);
+        taktText.setText(takt.getBpm());
     }
 
     public class AudioStreamReader extends AsyncTask<Void, short[], Void> {

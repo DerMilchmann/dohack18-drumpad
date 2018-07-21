@@ -20,7 +20,7 @@ public class Takt
     {
         this.anzahlGrundschlaege = anzahlGrundschlaege;
         this.Notenlaenge = Notenlaenge;
-        bpm = 60;
+        bpm = 60; //Ausgabe der BPM als Metronom als Viertel
         updateSchlaglaenge();
     }
 
@@ -55,5 +55,17 @@ public class Takt
     public double getSchlaglaenge()
     {
         return schlaglaenge;
+    }
+
+    public int getAnzahlGrundschlaege() {
+        return anzahlGrundschlaege;
+    }
+
+    public int getNotenlaenge() {
+        return Notenlaenge;
+    }
+
+    public int getBpm() {
+        return bpm;
     }
 }
