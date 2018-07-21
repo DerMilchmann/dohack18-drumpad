@@ -22,7 +22,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
     private ProgressBar progressBar;
-    private TextView textView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,9 +32,7 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
 
         progressBar = (ProgressBar) findViewById(R.id.volumeBar);
-        //progressBar.setMin(30000);
-        progressBar.setMax(33000);
-        textView = (TextView) findViewById(R.id.textView);
+        progressBar.setMax(100);
 
         AsyncTask reader = new AudioStreamReader().execute();
     }
@@ -50,7 +47,6 @@ public class MainActivity extends AppCompatActivity {
                 AudioRecord audioRecord = findAudioRecord();
 
                 final short[] buffer = new short[blockSize];
-                final double[] toTransform = new double[blockSize];
                 if(audioRecord != null) {
                     if(audioRecord.getState() == AudioRecord.STATE_INITIALIZED) audioRecord.startRecording();
                     else;
@@ -61,11 +57,12 @@ public class MainActivity extends AppCompatActivity {
                     System.out.println(test2);
 
                     while (true) {
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                         final int bufferReadResult = audioRecord.read(buffer, 0, blockSize);
                         short[] readSize = {(short)bufferReadResult};
                         publishProgress(buffer, readSize);
                     }
+                    //TODO(Fabian): Maybe stop and flush the Stream??
                     //audioRecord.stop();
                     //audioRecord.release();
                 }
@@ -80,20 +77,20 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(short[]... buffers) {
             super.onProgressUpdate(buffers);
-            progressBar.setProgress(calculate(buffers[0], buffers[1][0]));
-            //textView.setText(progressBar.getProgress());
+            progressBar.setProgress((int)calculate(buffers[0], buffers[1][0]));
         }
 
 
-        public int calculate(short [] buffer, int readSize) {
+        public double calculate(short [] buffer, int readSize) {
             double sum = 0;
             for (int i = 0; i < readSize; i++) {
                 sum += buffer [i] * buffer [i];
             }
+
             if (readSize > 0) {
-                final double amplitude = sum / readSize;
-                System.out.println(Math.sqrt(amplitude));
-                return (int) Math.sqrt(amplitude);
+                final double amplitude = (sum / readSize) / 51805.5336;
+                //TODO(Fabian): Maybe implement a less shitty equation for calculating DB
+                return (Math.abs(((20 * Math.log10(amplitude/0.00002)) - 181) * 50));
             }
             return 0;
         }
