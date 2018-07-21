@@ -7,13 +7,6 @@
     tools:context="de.dohack.dohack18.drumpad.activities.MainActivity"
     android:id="@+id/mainView">
 
-    <ProgressBar
-        android:id="@+id/volumeBar"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp" />
-
     <com.skyfishjy.library.RippleBackground
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"

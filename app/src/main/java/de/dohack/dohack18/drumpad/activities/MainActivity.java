@@ -31,17 +31,16 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
 
-    private ProgressBar progressBar;
     private TextView bpmText;
     private TextView taktText;
+    private ImageView image;
 
     public class AudioStreamTask extends AsyncTask<Void, Double, Void> {
-        private int blockSize = 2048;// = 256;
-
         @Override
         protected Void doInBackground(Void... params) {
             SoundMeter soundMeter = new SoundMeter();
             soundMeter.start();
+
             while(true) {
                 publishProgress(20 * Math.log(soundMeter.getAmplitude()) / Math.log(10));
             }
@@ -50,11 +49,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(Double... dbValues) {
             super.onProgressUpdate(dbValues);
-            /*
-             * TODO(Fabian): Die Dezibel müssen als relativer wert angegeben werden, es muss also
-             *  vorab ein Pegel brechnet werden und dann die Abweichung davon berechnet werden
-             */
-            progressBar.setProgress(dbValues[0].intValue());
+            System.out.println(dbValues[0].intValue());
+            if(dbValues[0].intValue() > 80) {
+                System.out.println("tapped!");
+                image.performClick();
+            }
         }
     }
 
@@ -65,9 +64,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
-
-        progressBar = (ProgressBar) findViewById(R.id.volumeBar);
-        progressBar.setMax(120);
 
         AsyncTask reader = new AudioStreamTask().execute();
 
@@ -103,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
     private void createNewTarget() {
         ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.mainView);
 
-        ImageView image = new ImageView(this);
+        image = new ImageView(this);
         image.setImageDrawable(getDrawable(R.drawable.ic_blur_circular_black_24dp));
         setRushToCenterAnimation(image);
 
@@ -118,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void setRushToCenterAnimation(ImageView view) {
         Point screenSize = new Point();
-        getWindowManager().getDefaultDisplay().getSize(screenSize);
+        getWindowManager().getDefaultDisplay().getRealSize(screenSize);
         float centerX = screenSize.x/2;
         float centerY = screenSize.y/2;
 
@@ -134,16 +130,25 @@ public class MainActivity extends AppCompatActivity {
         objectAnimatorYTranslation.start();
     }
 
+    //TODO(Fabian): Random-Function überarbeiten
     private Point generateRandomEntrancePoint(Point screenSize) {
         Random random = new Random();
+        int side = random.nextInt(4);
         Point randomPoint = new Point();
-        randomPoint.x = random.nextInt(screenSize.x);
 
-        if(randomPoint.x == 0 || randomPoint.x == screenSize.x) {
-            randomPoint.y = random.nextInt(screenSize.y);
-        } else {
-            randomPoint.y = random.nextInt(1);
-            randomPoint.y = randomPoint.y * screenSize.y;
+        switch (side) {
+            case 0: randomPoint.x = 0;
+                    randomPoint.y = random.nextInt(screenSize.y);
+                    break;
+            case 1: randomPoint.x = screenSize.x;
+                    randomPoint.y = random.nextInt(screenSize.y);
+                    break;
+            case 2: randomPoint.y = 0;
+                    randomPoint.x = random.nextInt(screenSize.x);
+                    break;
+            case 3: randomPoint.y = screenSize.y;
+                    randomPoint.x = random.nextInt(screenSize.x);
+                    break;
         }
 
         return randomPoint;
