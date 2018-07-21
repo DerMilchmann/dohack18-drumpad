@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     private TextView bpmText;
     private TextView taktText;
     private ImageView image;
-    private Point centre = new Point();
 
     public class AudioStreamTask extends AsyncTask<Void, Double, Void> {
         @Override
@@ -70,16 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         RippleBackground rippleBackground=(RippleBackground)findViewById(R.id.content);
         rippleBackground.startRippleAnimation();
-
-        /*
-        float centreX = rippleBackground.getX() + rippleBackground.getWidth()  / 2;
-        float centreY = rippleBackground.getY() + rippleBackground.getHeight() / 2;
-        centre = new Point();
-        centre.set((int)centreX, (int)centreY); */
-
-        this.getWindowManager().getDefaultDisplay().getRealSize(centre);
-        centre.x = centre.x/2;
-        centre.y = centre.y/2;
 
         createNewTarget();
 
@@ -124,37 +113,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setRushToCenterAnimation(ImageView view) {
-        //Point randomEntrancePoint = generateRandomEntrancePoint();
-        view.setX(900);
-        view.setY(900);
+        Point screenSize = new Point();
+        getWindowManager().getDefaultDisplay().getRealSize(screenSize);
+        float centerX = screenSize.x/2;
+        float centerY = screenSize.y/2;
 
-        ObjectAnimator objectAnimatorXTranslation = ObjectAnimator.ofFloat(view, "translationX", centre.x);
+        Point randomEntrancePoint = generateRandomEntrancePoint(screenSize);
+        view.setX(randomEntrancePoint.x);
+        view.setY(randomEntrancePoint.y);
+
+        ObjectAnimator objectAnimatorXTranslation = ObjectAnimator.ofFloat(view, "translationX", centerX);
         objectAnimatorXTranslation.setDuration(3000);
         objectAnimatorXTranslation.start();
-        ObjectAnimator objectAnimatorYTranslation = ObjectAnimator.ofFloat(view, "translationY", 900);
+        ObjectAnimator objectAnimatorYTranslation = ObjectAnimator.ofFloat(view, "translationY", centerY);
         objectAnimatorYTranslation.setDuration(3000);
         objectAnimatorYTranslation.start();
     }
 
     //TODO(Fabian): Random-Function überarbeiten
-    private Point generateRandomEntrancePoint() {
+    private Point generateRandomEntrancePoint(Point screenSize) {
         Random random = new Random();
         int side = random.nextInt(4);
         Point randomPoint = new Point();
 
         switch (side) {
             case 0: randomPoint.x = 0;
-                    randomPoint.y = random.nextInt(centre.y);
-                    break;
-            case 1: randomPoint.x = centre.x;
-                    randomPoint.y = random.nextInt(centre.y);
-                    break;
+                randomPoint.y = random.nextInt(screenSize.y);
+                break;
+            case 1: randomPoint.x = screenSize.x;
+                randomPoint.y = random.nextInt(screenSize.y);
+                break;
             case 2: randomPoint.y = 0;
-                    randomPoint.x = random.nextInt(centre.x);
-                    break;
-            case 3: randomPoint.y = centre.y;
-                    randomPoint.x = random.nextInt(centre.x);
-                    break;
+                randomPoint.x = random.nextInt(screenSize.x);
+                break;
+            case 3: randomPoint.y = screenSize.y;
+                randomPoint.x = random.nextInt(screenSize.x);
+                break;
         }
 
         return randomPoint;
