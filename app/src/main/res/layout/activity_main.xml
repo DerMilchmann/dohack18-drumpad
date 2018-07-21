@@ -26,10 +26,6 @@
             android:src="@drawable/ic_blur_circular_black_24dp"/>
     </com.skyfishjy.library.RippleBackground>
 
-    <Button
-        android:layout_width="30dp"
-        android:layout_height="30dp" />
-
     <TextView
         android:id="@+id/bpmText"
         android:layout_width="wrap_content"
