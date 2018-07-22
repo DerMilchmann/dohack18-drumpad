@@ -38,7 +38,8 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView bpmText;
     private TextView taktText;
-    RippleBackground rippleBackground;
+    private ConstraintLayout layout;
+    private RippleBackground rippleBackground;
     private ImageView image;
     private LinkedList<ImageView> targets;
     Takt takt;
@@ -66,13 +67,47 @@ public class MainActivity extends AppCompatActivity {
         protected void onProgressUpdate(Double... dbValues) {
             super.onProgressUpdate(dbValues);
             System.out.println(dbValues[0].intValue());
-            if(dbValues[0].intValue() > 80) {
-                System.out.println("tapped!");
-                if(!targets.isEmpty()) {
-                    targets.getFirst().performClick();
-                    targets.removeFirst();
+            if(!targets.isEmpty()) {
+                if(dbValues[0].intValue() > 70) {
+                    System.out.println("tapped!");
+                    if(missedTakt(true)) {
+                        layout.setBackgroundColor(getResources().getColor(R.color.red));
+                    } else {
+                        layout.setBackgroundColor(getResources().getColor(R.color.green));
+                        targets.getFirst().performClick();
+                        targets.removeFirst();
+                    }
+                } else {
+                    if(missedTakt(false)) {
+                        layout.setBackgroundColor(getResources().getColor(R.color.red));
+                        targets.getFirst().performClick();
+                        targets.removeFirst();
+                    }
                 }
             }
+        }
+
+        private boolean missedTakt(boolean isTapped) {
+            float targetX = targets.getFirst().getX() + targets.getFirst().getWidth()/2;
+
+            int[] location = {0,0};
+            rippleBackground.getLocationInWindow(location);
+            int centerX = location[0]+rippleBackground.getWidth()/2;
+
+            int[] bounds = {centerX - 64, centerX + 64};
+
+            if(isTapped) {
+                if(targetX > bounds[1] || targetX < bounds[0]) return true;
+                return false;
+            }
+
+            System.out.println("Width/2: " + targets.getFirst().getWidth()/2);
+            System.out.println("bounds: " + bounds[0] + ", " + bounds[1]);
+            System.out.println("location target: " + targetX);
+
+            if(targetX < bounds[0]) return true;
+
+            return false;
         }
     }
 
@@ -85,6 +120,8 @@ public class MainActivity extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
 
         AsyncTask reader = new AudioStreamTask().execute();
+
+        layout = (ConstraintLayout) findViewById(R.id.mainView);
 
         rippleBackground=(RippleBackground)findViewById(R.id.content);
         rippleBackground.startRippleAnimation();
@@ -117,12 +154,11 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void createNewTarget()  {
-        ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.mainView);
-
         image = new ImageView(this);
         image.setImageDrawable(getDrawable(R.drawable.ic_blur_circular_black_24dp));
         setRushToCenterAnimation(image);
         targets.addLast(image);
+
         image.setOnClickListener( view -> {
             layout.removeView(view);
         });
@@ -135,10 +171,8 @@ public class MainActivity extends AppCompatActivity {
         getWindowManager().getDefaultDisplay().getRealSize(screenSize);
         int[] location = {0,0};
         rippleBackground.getLocationInWindow(location);
-        int centerX = screenSize.x/2;
         int centerY = location[1]+rippleBackground.getHeight()/3;
 
-        //Point randomEntrancePoint = generateRandomEntrancePoint(screenSize);
         Point entrancePoint = new Point(screenSize.x,centerY);
 
         view.setX(entrancePoint.x);
@@ -148,9 +182,5 @@ public class MainActivity extends AppCompatActivity {
         objectAnimatorXTranslation.setDuration(2000);
         objectAnimatorXTranslation.setInterpolator(new LinearInterpolator());
         objectAnimatorXTranslation.start();
-        /*ObjectAnimator objectAnimatorYTranslation = ObjectAnimator.ofFloat(view, "translationY", centerY);
-        objectAnimatorYTranslation.setDuration(2000);
-        objectAnimatorYTranslation.setInterpolator(new LinearInterpolator());
-        objectAnimatorYTranslation.start();*/
     }
 }
