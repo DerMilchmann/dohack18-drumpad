@@ -8,6 +8,7 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.constraint.ConstraintLayout;
 import android.support.v4.app.ActivityCompat;
@@ -16,6 +17,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -25,7 +27,10 @@ import android.widget.TextView;
 import com.example.jakob.drumpad.R;
 import com.skyfishjy.library.RippleBackground;
 
+import java.util.LinkedList;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,7 +38,18 @@ public class MainActivity extends AppCompatActivity {
 
     private TextView bpmText;
     private TextView taktText;
+    RippleBackground rippleBackground;
     private ImageView image;
+    private LinkedList<ImageView> targets;
+    Takt takt;
+    Handler timerHandler = new Handler();
+    Runnable timerRunnable = new Runnable(){
+        @Override
+        public void run(){
+            createNewTarget();
+            timerHandler.postDelayed(this, takt.getSchlaglaenge());
+        }
+    };
 
     public class AudioStreamTask extends AsyncTask<Void, Double, Void> {
         @Override
@@ -52,7 +68,10 @@ public class MainActivity extends AppCompatActivity {
             System.out.println(dbValues[0].intValue());
             if(dbValues[0].intValue() > 80) {
                 System.out.println("tapped!");
-                image.performClick();
+                if(!targets.isEmpty()) {
+                    targets.getFirst().performClick();
+                    targets.removeFirst();
+                }
             }
         }
     }
@@ -67,18 +86,17 @@ public class MainActivity extends AppCompatActivity {
 
         AsyncTask reader = new AudioStreamTask().execute();
 
-        RippleBackground rippleBackground=(RippleBackground)findViewById(R.id.content);
+        rippleBackground=(RippleBackground)findViewById(R.id.content);
         rippleBackground.startRippleAnimation();
 
-        createNewTarget();
-
-        //TODO: bei setText(takt.getBpm()) wird eine Exception geworfen
-        /*Takt takt = new Takt(4,4);
+        takt = new Takt(4,4);
         bpmText = (TextView) findViewById(R.id.bpmText);
-        bpmText.setText(takt.getBpm());
+        bpmText.setText(Integer.toString(takt.getBpm()));
         taktText = (TextView) findViewById(R.id.taktText);
-        taktText.setText(takt.getAnzahlGrundschlaege() + "/" + takt.getNotenlaenge());*/
+        taktText.setText(takt.getAnzahlGrundschlaege() + "/" + takt.getNotenlaenge());
 
+        targets = new LinkedList<>();
+        timerHandler.postDelayed(timerRunnable,0);
     }
 
     private boolean permissionToRecordAccepted = false;
@@ -96,17 +114,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void createNewTarget() {
+
+    private void createNewTarget()  {
         ConstraintLayout layout = (ConstraintLayout) findViewById(R.id.mainView);
 
         image = new ImageView(this);
         image.setImageDrawable(getDrawable(R.drawable.ic_blur_circular_black_24dp));
         setRushToCenterAnimation(image);
-
+        targets.addLast(image);
         image.setOnClickListener( view -> {
             layout.removeView(view);
-
-            createNewTarget();
         });
 
         layout.addView(image);
@@ -115,42 +132,24 @@ public class MainActivity extends AppCompatActivity {
     private void setRushToCenterAnimation(ImageView view) {
         Point screenSize = new Point();
         getWindowManager().getDefaultDisplay().getRealSize(screenSize);
-        float centerX = screenSize.x/2;
-        float centerY = screenSize.y/2;
+        int[] location = {0,0};
+        rippleBackground.getLocationInWindow(location);
+        int centerX = screenSize.x/2;
+        int centerY = location[1]+rippleBackground.getHeight()/3;
 
-        Point randomEntrancePoint = generateRandomEntrancePoint(screenSize);
-        view.setX(randomEntrancePoint.x);
-        view.setY(randomEntrancePoint.y);
+        //Point randomEntrancePoint = generateRandomEntrancePoint(screenSize);
+        Point entrancePoint = new Point(screenSize.x,centerY);
 
-        ObjectAnimator objectAnimatorXTranslation = ObjectAnimator.ofFloat(view, "translationX", centerX);
-        objectAnimatorXTranslation.setDuration(3000);
+        view.setX(entrancePoint.x);
+        view.setY(entrancePoint.y);
+
+        ObjectAnimator objectAnimatorXTranslation = ObjectAnimator.ofFloat(view, "translationX", 0);
+        objectAnimatorXTranslation.setDuration(2000);
+        objectAnimatorXTranslation.setInterpolator(new LinearInterpolator());
         objectAnimatorXTranslation.start();
-        ObjectAnimator objectAnimatorYTranslation = ObjectAnimator.ofFloat(view, "translationY", centerY);
-        objectAnimatorYTranslation.setDuration(3000);
-        objectAnimatorYTranslation.start();
-    }
-
-    //TODO(Fabian): Random-Function überarbeiten
-    private Point generateRandomEntrancePoint(Point screenSize) {
-        Random random = new Random();
-        int side = random.nextInt(4);
-        Point randomPoint = new Point();
-
-        switch (side) {
-            case 0: randomPoint.x = 0;
-                randomPoint.y = random.nextInt(screenSize.y);
-                break;
-            case 1: randomPoint.x = screenSize.x;
-                randomPoint.y = random.nextInt(screenSize.y);
-                break;
-            case 2: randomPoint.y = 0;
-                randomPoint.x = random.nextInt(screenSize.x);
-                break;
-            case 3: randomPoint.y = screenSize.y;
-                randomPoint.x = random.nextInt(screenSize.x);
-                break;
-        }
-
-        return randomPoint;
+        /*ObjectAnimator objectAnimatorYTranslation = ObjectAnimator.ofFloat(view, "translationY", centerY);
+        objectAnimatorYTranslation.setDuration(2000);
+        objectAnimatorYTranslation.setInterpolator(new LinearInterpolator());
+        objectAnimatorYTranslation.start();*/
     }
 }

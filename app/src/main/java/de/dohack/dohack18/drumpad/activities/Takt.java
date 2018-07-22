@@ -13,7 +13,7 @@ public class Takt
     //Ein Achtelschlag ist halb so lang wie ein Viertelschlag etc.
     int anzahlGrundschlaege;
     int Notenlaenge;
-    double schlaglaenge;
+    long schlaglaenge;
     int bpm;
 
     public Takt(int anzahlGrundschlaege, int Notenlaenge)
@@ -52,7 +52,7 @@ public class Takt
         schlaglaenge = bpm / 60 * 1000 * 4 / Notenlaenge;
     }
 
-    public double getSchlaglaenge()
+    public long getSchlaglaenge()
     {
         return schlaglaenge;
     }
