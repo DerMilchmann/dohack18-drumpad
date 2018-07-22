@@ -92,9 +92,10 @@ public class MainActivity extends AppCompatActivity {
         takt = new Takt(4,4);
         bpmText = (TextView) findViewById(R.id.bpmText);
         bpmText.setText(Integer.toString(takt.getBpm()));
+        bpmText.setOnClickListener(v -> takt.incrementBpm());
         taktText = (TextView) findViewById(R.id.taktText);
         taktText.setText(takt.getAnzahlGrundschlaege() + "/" + takt.getNotenlaenge());
-
+        
         targets = new LinkedList<>();
         timerHandler.postDelayed(timerRunnable,0);
     }

@@ -46,6 +46,13 @@ public class Takt
         }
         updateSchlaglaenge();
     }
+    public void incrementBpm()
+    {
+        if(bpm < 100)
+            bpm+=5;
+        else
+            bpm=40;
+    }
 
     public void updateSchlaglaenge() //in Millisekunden
     {
